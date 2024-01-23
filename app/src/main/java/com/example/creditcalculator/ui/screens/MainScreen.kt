@@ -81,7 +81,8 @@ fun MainWindow(modifier: Modifier = Modifier) {
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
-                modifier = Modifier.menuAnchor()
+                modifier = Modifier.menuAnchor(),
+                label = { Text("Единица измерения") },
             )
 
             ExposedDropdownMenu(
@@ -114,7 +115,8 @@ fun MainWindow(modifier: Modifier = Modifier) {
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
-                modifier = Modifier.menuAnchor()
+                modifier = Modifier.menuAnchor(),
+                label = { Text("Способ погашения") },
             )
 
             ExposedDropdownMenu(
