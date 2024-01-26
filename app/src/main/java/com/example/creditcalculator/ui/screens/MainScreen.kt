@@ -100,7 +100,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
             }
         }
 
-        //поле для выбора срока погашения
+        //поле для выбора способа погашения
         ExposedDropdownMenuBox(
             expanded = expanded2,
             onExpandedChange = {
@@ -108,7 +108,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
             }
         ) {
             TextField(
-                value = repaymentMethodsLabel,
+                value = creditData.repaymentMethod,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
