@@ -18,19 +18,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.creditcalculator.model.CreditData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Preview(showBackground = true)
 fun MainWindow(modifier: Modifier = Modifier) {
-    var loanAmount by remember { mutableStateOf("") }
-    var interestRate by remember { mutableStateOf("") }
-    var loanTerm by remember { mutableStateOf("") }
-    var selectedUnit by remember { mutableStateOf("Год") }
-    var unitLabel by remember { mutableStateOf("Единица измерения") }
-    var selectedRepaymentMethod by remember { mutableStateOf("Аннуитентные платежи") }
+    var creditData by remember { mutableStateOf(CreditData()) }
 
-    // Список значений для комбо-боксов
+    var unitLabel by remember { mutableStateOf("Единица измерения") }
     val units = listOf("Год", "Месяц")
     var repaymentMethodsLabel by remember { mutableStateOf("Способ погашения") }
     val repaymentMethods = listOf("Аннуитентные платежи", "Дифференцированные платежи")
@@ -47,24 +45,24 @@ fun MainWindow(modifier: Modifier = Modifier) {
     ) {
         // Поле для ввода суммы кредита
         TextField(
-            value = loanAmount,
-            onValueChange = { loanAmount = it },
+            value = creditData.loanAmount,
+            onValueChange = { creditData = creditData.copy(loanAmount = it) },
             label = { Text("Сумма кредита") },
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
         )
 
         // Поле для ввода процентной ставки
         TextField(
-            value = interestRate,
-            onValueChange = { interestRate = it },
+            value = creditData.interestRate,
+            onValueChange = { creditData = creditData.copy(interestRate = it) },
             label = { Text("Процентная ставка") },
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
         )
 
         // Поле для ввода срока кредита
         TextField(
-            value = loanTerm,
-            onValueChange = { loanTerm = it },
+            value = creditData.loanTerm,
+            onValueChange = { creditData = creditData.copy(loanTerm = it) },
             label = { Text("Срок кредита") },
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
         )
@@ -77,7 +75,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
             }
         ) {
             TextField(
-                value = unitLabel,
+                value = creditData.selectedUnit,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
@@ -93,7 +91,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
                     DropdownMenuItem(
                         text = { Text(text = item) },
                         onClick = {
-                            selectedUnit = item
+                            creditData = creditData.copy(selectedUnit = item)
                             unitLabel = item
                             expanded1 = false
                         }
@@ -101,7 +99,6 @@ fun MainWindow(modifier: Modifier = Modifier) {
                 }
             }
         }
-
 
         //поле для выбора срока погашения
         ExposedDropdownMenuBox(
@@ -127,7 +124,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
                     DropdownMenuItem(
                         text = { Text(text = item) },
                         onClick = {
-                            selectedRepaymentMethod = item
+                            creditData = creditData.copy(repaymentMethod = item)
                             repaymentMethodsLabel = item
                             expanded2 = false
                         }
@@ -144,33 +141,21 @@ fun MainWindow(modifier: Modifier = Modifier) {
 
             // Кнопка "Очистить"
             Button(onClick = {
-                // Очистить все введенные данные
-                loanAmount = ""
-                interestRate = ""
-                loanTerm = ""
-                selectedUnit = "Год"
-                unitLabel = "Единица измерения"
-                selectedRepaymentMethod = "Аннуитентные платежи"
-                repaymentMethodsLabel = "Способ погашения"
+                creditData = CreditData()
             }) {
                 Text("Очистить")
             }
 
             // Кнопка "Расчет"
             Button(onClick = {
-                // Ваш код для расчета на основе введенных данных
-                // ...
-
-                // Пример вывода результатов в консоль
-                println("Сумма кредита: $loanAmount")
-                println("Процентная ставка: $interestRate")
-                println("Срок кредита: $loanTerm $selectedUnit")
-                println("Способ погашения: $selectedRepaymentMethod")
+                //TODO Метод расчета кредита
+                println("Сумма кредита: ${creditData.loanAmount}")
+                println("Процентная ставка: ${creditData.interestRate}")
+                println("Срок кредита: ${creditData.loanTerm} ${creditData.selectedUnit}")
+                println("Способ погашения: ${creditData.repaymentMethod}")
             }) {
                 Text("Расчет")
             }
         }
-
-
     }
 }
