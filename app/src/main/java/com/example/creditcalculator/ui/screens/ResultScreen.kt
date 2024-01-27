@@ -9,14 +9,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.creditcalculator.model.CreditDataViewModel
 
 @Composable
-fun ResultScreen() {
-    var resultText by remember { mutableStateOf("Результат расчета") }
+fun ResultScreen(creditViewModel: CreditDataViewModel) {
+    val creditData = creditViewModel.creditData
+    println(creditData)
+    val resultText by remember { mutableStateOf("Результат расчета") }
     Column(
         modifier = Modifier
             .fillMaxSize()

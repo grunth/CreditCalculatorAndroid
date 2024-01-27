@@ -21,11 +21,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.creditcalculator.model.CreditData
+import com.example.creditcalculator.model.CreditDataViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainWindow(navController: NavController, modifier: Modifier = Modifier) {
-    var creditData by remember { mutableStateOf(CreditData()) }
+fun MainWindow(navController: NavController, creditViewModel: CreditDataViewModel) {
+    var creditData by remember { mutableStateOf(creditViewModel.creditData) }
 
     var unitLabel by remember { mutableStateOf("Единица измерения") }
     val units = listOf("Год", "Месяц")
@@ -39,7 +40,7 @@ fun MainWindow(navController: NavController, modifier: Modifier = Modifier) {
         mutableStateOf(false)
     }
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Поле для ввода суммы кредита
@@ -133,11 +134,9 @@ fun MainWindow(navController: NavController, modifier: Modifier = Modifier) {
         }
 
         Column(
-            modifier = modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ... (ваш предыдущий код)
-
             // Кнопка "Очистить"
             Button(onClick = {
                 creditData = CreditData()
@@ -148,11 +147,8 @@ fun MainWindow(navController: NavController, modifier: Modifier = Modifier) {
             // Кнопка "Расчет"
             Button(onClick = {
                 navController.navigate("resultScreen")
+                creditViewModel.creditData = creditData
                 //TODO Метод расчета кредита
-                println("Сумма кредита: ${creditData.loanAmount}")
-                println("Процентная ставка: ${creditData.interestRate}")
-                println("Срок кредита: ${creditData.loanTerm} ${creditData.selectedUnit}")
-                println("Способ погашения: ${creditData.repaymentMethod}")
             }) {
                 Text("Расчет")
             }
