@@ -18,14 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.creditcalculator.model.CreditData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(showBackground = true)
-fun MainWindow(modifier: Modifier = Modifier) {
+fun MainWindow(navController: NavController, modifier: Modifier = Modifier) {
     var creditData by remember { mutableStateOf(CreditData()) }
 
     var unitLabel by remember { mutableStateOf("Единица измерения") }
@@ -148,6 +147,7 @@ fun MainWindow(modifier: Modifier = Modifier) {
 
             // Кнопка "Расчет"
             Button(onClick = {
+                navController.navigate("resultScreen")
                 //TODO Метод расчета кредита
                 println("Сумма кредита: ${creditData.loanAmount}")
                 println("Процентная ставка: ${creditData.interestRate}")
