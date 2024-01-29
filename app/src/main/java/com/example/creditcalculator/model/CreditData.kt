@@ -14,3 +14,11 @@ data class CreditData(
     var selectedUnit: String = "Год",
     var repaymentMethod: String = "Аннуитентные платежи"
 )
+
+data class CreditRepaymentData(
+    var month: Int = 0,
+    var d: Int = 0,
+    var y: Int = 0,
+    var procents: Int = 0,
+    var dolg: Int = 0
+)
