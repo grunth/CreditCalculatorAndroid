@@ -17,15 +17,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.creditcalculator.model.CreditDataViewModel
+import com.example.creditcalculator.service.calc
 
 @Composable
 fun ResultScreen(creditViewModel: CreditDataViewModel) {
     var creditData = creditViewModel.creditData
     val resultText by remember { mutableStateOf("Результат расчета") }
 
-    val tableData = (1..100).mapIndexed { index, item ->
-        index to "Item $index"
-    }
+    val data = calc(creditViewModel);
+
+//    val tableData = (1..100).mapIndexed { index, item ->
+//        index to "Item $index"
+//    }
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -54,14 +57,13 @@ fun ResultScreen(creditViewModel: CreditDataViewModel) {
             }
         }
 
-        items(tableData) {
-            val (id, text) = it
+        items(data) {
             Row(Modifier.fillMaxWidth()) {
-                TableCell(text = id.toString(), weight = .1f)
-                TableCell(text = "test1", weight = .2f)
-                TableCell(text = "test2", weight = .2f)
-                TableCell(text = "test3", weight = .2f)
-                TableCell(text = "test4", weight = .2f)
+                TableCell(text = it.month.toString(), weight = .1f)
+                TableCell(text = it.d.toString(), weight = .2f)
+                TableCell(text = it.y.toString(), weight = .2f)
+                TableCell(text = it.procents.toString(), weight = .2f)
+                TableCell(text = it.dolg.toString(), weight = .2f)
             }
         }
 
