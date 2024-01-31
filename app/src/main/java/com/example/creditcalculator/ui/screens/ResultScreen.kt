@@ -26,9 +26,6 @@ fun ResultScreen(creditViewModel: CreditDataViewModel) {
 
     val data = calc(creditViewModel);
 
-//    val tableData = (1..100).mapIndexed { index, item ->
-//        index to "Item $index"
-//    }
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -59,23 +56,23 @@ fun ResultScreen(creditViewModel: CreditDataViewModel) {
 
         items(data) {
             Row(Modifier.fillMaxWidth()) {
-                TableCell(text = it.month.toString(), weight = .1f)
-                TableCell(text = it.d.toString(), weight = .2f)
-                TableCell(text = it.y.toString(), weight = .2f)
-                TableCell(text = it.procents.toString(), weight = .2f)
-                TableCell(text = it.dolg.toString(), weight = .2f)
+                TableCell(text = it.month, weight = .1f)
+                TableCell(text = it.d, weight = .2f)
+                TableCell(text = it.y, weight = .2f)
+                TableCell(text = it.procents, weight = .2f)
+                TableCell(text = it.dolg, weight = .2f)
             }
         }
 
-        item {
-            Row(Modifier.background(Color.DarkGray)) {
-                TableCell(text = "ИТОГО", weight = .1f)
-                TableCell(text = "сум", weight = .225f)
-                TableCell(text = "сум", weight = .225f)
-                TableCell(text = "сум", weight = .225f)
-                TableCell(text = "сум", weight = .225f)
-            }
-        }
+//        item {
+//            Row(Modifier.background(Color.DarkGray)) {
+//                TableCell(text = "ИТОГО", weight = .1f)
+//                TableCell(text = "сум", weight = .225f)
+//                TableCell(text = "сум", weight = .225f)
+//                TableCell(text = "сум", weight = .225f)
+//                TableCell(text = "сум", weight = .225f)
+//            }
+//        }
     }
 }
 

@@ -16,9 +16,9 @@ data class CreditData(
 )
 
 data class CreditRepaymentData(
-    var month: Int = 0,
-    var d: Int = 0,
-    var y: Int = 0,
-    var procents: Int = 0,
-    var dolg: Int = 0
+    var month: String = "",
+    var d: String = "",
+    var y: String = "",
+    var procents: String = "",
+    var dolg: String = ""
 )
