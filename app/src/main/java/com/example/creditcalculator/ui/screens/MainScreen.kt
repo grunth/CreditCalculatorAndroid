@@ -27,12 +27,10 @@ import com.example.creditcalculator.model.CreditDataViewModel
 @Composable
 fun MainWindow(navController: NavController, creditViewModel: CreditDataViewModel) {
     var creditData by remember { mutableStateOf(creditViewModel.creditData) }
-
     var unitLabel by remember { mutableStateOf("Единица измерения") }
     val units = listOf("Год", "Месяц")
     var repaymentMethodsLabel by remember { mutableStateOf("Способ погашения") }
     val repaymentMethods = listOf("Аннуитентные платежи", "Дифференцированные платежи")
-
     var expanded1 by remember {
         mutableStateOf(false)
     }
