@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +32,7 @@ fun MainWindow(navController: NavController, creditViewModel: CreditDataViewMode
     val units = listOf("Год", "Месяц")
     var repaymentMethodsLabel by remember { mutableStateOf("Способ погашения") }
     val repaymentMethods = listOf("Аннуитентные платежи", "Дифференцированные платежи")
+    var showDialog by remember { mutableStateOf(false) }
     var expanded1 by remember {
         mutableStateOf(false)
     }
@@ -144,12 +146,43 @@ fun MainWindow(navController: NavController, creditViewModel: CreditDataViewMode
 
             // Кнопка "Расчет"
             Button(onClick = {
-                navController.navigate("resultScreen")
-                creditViewModel.creditData = creditData
-                //TODO Метод расчета кредита
+                if (validateFields(creditData)) {
+                    navController.navigate("resultScreen")
+                    creditViewModel.creditData = creditData
+                } else {
+                    showDialog = true
+                }
+
             }) {
                 Text("Расчет")
             }
         }
     }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Ошибка") },
+            text = {
+                Text("Пожалуйста, заполните все поля перед расчетом.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                    }
+                ) {
+                    Text("ОК")
+                }
+            }
+        )
+    }
+}
+
+private fun validateFields(creditData: CreditData): Boolean {
+    return creditData.loanAmount.isNotEmpty() &&
+            creditData.interestRate.isNotEmpty() &&
+            creditData.loanTerm.isNotEmpty() &&
+            creditData.selectedUnit.isNotEmpty() &&
+            creditData.repaymentMethod.isNotEmpty()
 }

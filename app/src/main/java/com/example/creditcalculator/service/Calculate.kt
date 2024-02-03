@@ -14,6 +14,7 @@ fun calc(creditViewModel: CreditDataViewModel): List<CreditRepaymentData> {
     var d: Double = creditData.loanAmount.toDouble()
 
     val numberFormatter = NumberFormat.getCurrencyInstance()
+    numberFormatter.maximumFractionDigits = 0
 
     val month: Int = if (creditData.selectedUnit == "Год") {
         creditData.loanTerm.toInt() * 12
