@@ -1,11 +1,16 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-android {
+kotlin {
+    jvmToolchain(8)
+}
+
+extensions.configure<ApplicationExtension> {
     namespace = "com.example.creditcalculator"
     compileSdk = 34
 
@@ -15,7 +20,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        archivesName="CreditCalculator"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,18 +36,8 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
     }
     packaging {
         resources {
