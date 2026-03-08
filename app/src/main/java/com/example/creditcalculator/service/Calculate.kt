@@ -2,98 +2,93 @@ package com.example.creditcalculator.service
 
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.model.CreditRepaymentData
-import java.lang.Math.abs
-import java.text.NumberFormat
 import kotlin.math.pow
-import kotlin.math.round
 
 fun calc(creditViewModel: CreditDataViewModel): List<CreditRepaymentData> {
     val result = mutableListOf<CreditRepaymentData>()
     val creditData = creditViewModel.creditData
-    val i: Double = creditData.interestRate.toDouble() / 100
-    var d: Double = creditData.loanAmount.toDouble()
+    
+    val loanAmount = creditData.loanAmount.replace(" ", "").toDoubleOrNull() ?: 0.0
+    val interestRate = creditData.interestRate.toDoubleOrNull() ?: 0.0
+    val i = interestRate / 100.0
+    val term = creditData.loanTerm.toDoubleOrNull() ?: 0.0
+    
+    val months = if (creditData.selectedUnit == "Год") (term * 12).toInt() else term.toInt()
+    if (months <= 0) return result
 
-    val numberFormatter = NumberFormat.getCurrencyInstance()
-    numberFormatter.maximumFractionDigits = 0
+    var balance = loanAmount
+    var totalInterest = 0.0
+    var totalPrincipal = 0.0
 
-    val month: Int = if (creditData.selectedUnit == "Год") {
-        creditData.loanTerm.toInt() * 12
-    } else {
-        creditData.loanTerm.toInt()
-    }
-    var procents = 0.0
-    var sumProcents = 0.0
-    var sumDolg = 0.0
-    var dolg = 0.0
-    var y = 0.0
-    var ySum = 0.0
+    // Начальное состояние (месяц 0)
+    result.add(CreditRepaymentData("0", balance.toString(), "-", "-", "-"))
 
     if (creditData.repaymentMethod == "Аннуитентные платежи") {
-        y = d * i / 12 / (1 - 1 / (1 + i / 12).pow(month))
-
-        for (temp in 0..month) {
-            val creditRepaymentData =
-                CreditRepaymentData(
-                    temp.toString(),
-                    numberFormatter.format(round(abs(d))).toString(),
-                    "-",
-                    "-",
-                    "-"
-                )
-            if (temp > 0) {
-                creditRepaymentData.y = numberFormatter.format(round(y)).toString()
-                creditRepaymentData.procents = numberFormatter.format(round(procents)).toString()
-                creditRepaymentData.dolg = numberFormatter.format(round(dolg)).toString()
+        val monthlyRate = i / 12.0
+        if (monthlyRate > 0) {
+            val monthlyPayment = loanAmount * monthlyRate / (1 - (1 + monthlyRate).pow(-months))
+            for (m in 1..months) {
+                val interest = balance * monthlyRate
+                var principal = monthlyPayment - interest
+                
+                // В последний месяц корректируем остаток, чтобы выйти в 0
+                if (m == months) {
+                    principal = balance
+                }
+                
+                val payment = interest + principal
+                balance -= principal
+                
+                totalInterest += interest
+                totalPrincipal += principal
+                
+                result.add(CreditRepaymentData(
+                    m.toString(),
+                    balance.toString(),
+                    payment.toString(),
+                    interest.toString(),
+                    principal.toString()
+                ))
             }
-            procents = d * i / 12
-            dolg = y - procents
-            d -= (y - procents)
-            sumProcents += procents
-            sumDolg += dolg
-            result.add(creditRepaymentData)
+        } else {
+            // Если ставка 0%
+            val monthlyPayment = loanAmount / months
+            for (m in 1..months) {
+                balance -= monthlyPayment
+                totalPrincipal += monthlyPayment
+                result.add(CreditRepaymentData(m.toString(), balance.toString(), monthlyPayment.toString(), "0", monthlyPayment.toString()))
+            }
         }
-
-        val lastRow = CreditRepaymentData(
-            "ИТОГО",
-            "",
-            numberFormatter.format(round(y * month)).toString(),
-            numberFormatter.format(round(sumProcents)).toString(),
-            numberFormatter.format(round(sumDolg)).toString()
-        )
-        result.add(lastRow)
     } else {
-        dolg = d / (month)
-
-        for (temp in 0..month) {
-            val creditRepaymentData =
-                CreditRepaymentData(
-                    temp.toString(),
-                    numberFormatter.format(round(abs(d))).toString(),
-                    "-",
-                    "-",
-                    "-"
-                )
-            if (temp > 0) {
-                creditRepaymentData.y = numberFormatter.format(round(y)).toString()
-                creditRepaymentData.procents = numberFormatter.format(round(procents)).toString()
-                creditRepaymentData.dolg = numberFormatter.format(round(dolg)).toString()
-            }
-            procents = (d - (temp - 1) * d / (month)) * i / 12
-            y = dolg + procents
-            d -= dolg
-            ySum += y
-            sumProcents += procents
-            result.add(creditRepaymentData)
+        // Дифференцированные платежи
+        val monthlyPrincipal = loanAmount / months
+        val monthlyRate = i / 12.0
+        for (m in 1..months) {
+            val interest = balance * monthlyRate
+            val payment = monthlyPrincipal + interest
+            
+            balance -= monthlyPrincipal
+            totalInterest += interest
+            totalPrincipal += monthlyPrincipal
+            
+            result.add(CreditRepaymentData(
+                m.toString(),
+                balance.toString(),
+                payment.toString(),
+                interest.toString(),
+                monthlyPrincipal.toString()
+            ))
         }
-        val lastRow = CreditRepaymentData(
-            "ИТОГО",
-            "",
-            numberFormatter.format(round(ySum)).toString(),
-            numberFormatter.format(round(sumProcents)).toString(),
-            numberFormatter.format(round(dolg * month)).toString()
-        )
-        result.add(lastRow)
     }
+
+    // Итоговая строка
+    result.add(CreditRepaymentData(
+        "ИТОГО",
+        "",
+        (totalInterest + totalPrincipal).toString(),
+        totalInterest.toString(),
+        totalPrincipal.toString()
+    ))
+    
     return result
 }
-

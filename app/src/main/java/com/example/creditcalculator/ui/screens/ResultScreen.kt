@@ -1,5 +1,10 @@
 package com.example.creditcalculator.ui.screens
 
+import android.content.Context
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -28,11 +34,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.creditcalculator.model.CreditData
 import com.example.creditcalculator.model.CreditDataViewModel
+import com.example.creditcalculator.model.CreditRepaymentData
 import com.example.creditcalculator.service.calc
 import java.text.NumberFormat
 import kotlin.math.roundToLong
@@ -40,6 +49,7 @@ import kotlin.math.roundToLong
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) {
+    val context = LocalContext.current
     val creditData = creditViewModel.creditData
     val data = calc(creditViewModel)
     
@@ -59,6 +69,11 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { printResults(context, creditData, data) }) {
+                        Icon(Icons.Default.Print, contentDescription = "Печать")
                     }
                 }
             )
@@ -131,10 +146,10 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                             .padding(vertical = 12.dp, horizontal = 4.dp)
                     ) {
                         TableCell(text = item.month, weight = 0.15f)
-                        TableCell(text = item.d, weight = 0.25f)
-                        TableCell(text = item.y, weight = 0.25f)
-                        TableCell(text = item.procents, weight = 0.15f)
-                        TableCell(text = item.dolg, weight = 0.2f)
+                        TableCell(text = formatValue(item.d), weight = 0.25f)
+                        TableCell(text = formatValue(item.y), weight = 0.25f)
+                        TableCell(text = formatValue(item.procents), weight = 0.15f)
+                        TableCell(text = formatValue(item.dolg), weight = 0.2f)
                     }
                     Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
                 }
@@ -154,10 +169,10 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                             .padding(vertical = 12.dp, horizontal = 4.dp)
                     ) {
                         TableCell(text = item.month, weight = 0.15f, fontWeight = FontWeight.Bold)
-                        TableCell(text = item.d, weight = 0.25f, fontWeight = FontWeight.Bold)
-                        TableCell(text = item.y, weight = 0.25f, fontWeight = FontWeight.Bold)
-                        TableCell(text = item.procents, weight = 0.15f, fontWeight = FontWeight.Bold)
-                        TableCell(text = item.dolg, weight = 0.2f, fontWeight = FontWeight.Bold)
+                        TableCell(text = formatValue(item.d), weight = 0.25f, fontWeight = FontWeight.Bold)
+                        TableCell(text = formatValue(item.y), weight = 0.25f, fontWeight = FontWeight.Bold)
+                        TableCell(text = formatValue(item.procents), weight = 0.15f, fontWeight = FontWeight.Bold)
+                        TableCell(text = formatValue(item.dolg), weight = 0.2f, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -194,4 +209,59 @@ fun RowScope.TableCell(text: String, weight: Float, fontWeight: FontWeight = Fon
         fontWeight = fontWeight,
         textAlign = TextAlign.Center
     )
+}
+
+fun printResults(context: Context, creditData: CreditData, results: List<CreditRepaymentData>) {
+    val webView = WebView(context)
+    val integerFormatter = NumberFormat.getIntegerInstance()
+    
+    fun formatVal(value: String): String {
+        return value.toDoubleOrNull()?.let { integerFormatter.format(it.roundToLong()) } ?: value
+    }
+
+    val htmlContent = StringBuilder()
+    htmlContent.append("<html><head><style>")
+    htmlContent.append("table { width: 100%; border-collapse: collapse; }")
+    htmlContent.append("th, td { border: 1px solid black; padding: 8px; text-align: center; font-size: 12px; }")
+    htmlContent.append("th { background-color: #f2f2f2; }")
+    htmlContent.append(".summary { margin-bottom: 20px; }")
+    htmlContent.append("</style></head><body>")
+    
+    htmlContent.append("<h1>Результаты расчета кредита</h1>")
+    htmlContent.append("<div class='summary'>")
+    htmlContent.append("<p><b>Сумма кредита:</b> ${formatVal(creditData.loanAmount)}</p>")
+    htmlContent.append("<p><b>Процентная ставка:</b> ${creditData.interestRate}%</p>")
+    htmlContent.append("<p><b>Срок:</b> ${creditData.loanTerm} ${creditData.selectedUnit}</p>")
+    htmlContent.append("<p><b>Тип платежей:</b> ${creditData.repaymentMethod}</p>")
+    htmlContent.append("</div>")
+
+    htmlContent.append("<table><thead><tr>")
+    htmlContent.append("<th>№</th><th>Остаток</th><th>Платеж</th><th>Проценты</th><th>Долг</th>")
+    htmlContent.append("</tr></thead><tbody>")
+
+    results.forEach { item ->
+        val isTotal = item.month == "ИТОГО"
+        val style = if (isTotal) "style='font-weight: bold; background-color: #e0e0e0;'" else ""
+        htmlContent.append("<tr $style>")
+        htmlContent.append("<td>${item.month}</td>")
+        htmlContent.append("<td>${formatVal(item.d)}</td>")
+        htmlContent.append("<td>${formatVal(item.y)}</td>")
+        htmlContent.append("<td>${formatVal(item.procents)}</td>")
+        htmlContent.append("<td>${formatVal(item.dolg)}</td>")
+        htmlContent.append("</tr>")
+    }
+
+    htmlContent.append("</tbody></table>")
+    htmlContent.append("</body></html>")
+
+    webView.webViewClient = object : WebViewClient() {
+        override fun onPageFinished(view: WebView, url: String) {
+            val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+            val printAdapter = webView.createPrintDocumentAdapter("CreditReport")
+            val jobName = "Credit Calculation Report"
+            printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
+        }
+    }
+
+    webView.loadDataWithBaseURL(null, htmlContent.toString(), "text/HTML", "UTF-8", null)
 }
