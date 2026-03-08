@@ -2,22 +2,46 @@ package com.example.creditcalculator.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -28,134 +52,168 @@ import com.example.creditcalculator.model.CreditDataViewModel
 @Composable
 fun MainWindow(navController: NavController, creditViewModel: CreditDataViewModel) {
     var creditData by remember { mutableStateOf(creditViewModel.creditData) }
-    var unitLabel by remember { mutableStateOf("Единица измерения") }
     val units = listOf("Год", "Месяц")
-    var repaymentMethodsLabel by remember { mutableStateOf("Способ погашения") }
     val repaymentMethods = listOf("Аннуитентные платежи", "Дифференцированные платежи")
     var showDialog by remember { mutableStateOf(false) }
-    var expanded1 by remember {
-        mutableStateOf(false)
-    }
-    var expanded2 by remember {
-        mutableStateOf(false)
-    }
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Поле для ввода суммы кредита
-        TextField(
-            value = creditData.loanAmount,
-            onValueChange = { creditData = creditData.copy(loanAmount = it) },
-            label = { Text("Сумма кредита") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-        )
+    var expanded1 by remember { mutableStateOf(false) }
+    var expanded2 by remember { mutableStateOf(false) }
 
-        // Поле для ввода процентной ставки
-        TextField(
-            value = creditData.interestRate,
-            onValueChange = { creditData = creditData.copy(interestRate = it) },
-            label = { Text("Процентная ставка") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-        )
-
-        // Поле для ввода срока кредита
-        TextField(
-            value = creditData.loanTerm,
-            onValueChange = { creditData = creditData.copy(loanTerm = it) },
-            label = { Text("Срок кредита") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-        )
-
-        //поле для выбора единиц измерения срока
-        ExposedDropdownMenuBox(
-            expanded = expanded1,
-            onExpandedChange = {
-                expanded1 = !expanded1
-            }
-        ) {
-            TextField(
-                value = creditData.selectedUnit,
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
-                modifier = Modifier.menuAnchor(),
-                label = { Text("Единица измерения") },
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Кредитный калькулятор", fontWeight = FontWeight.Bold) }
             )
-
-            ExposedDropdownMenu(
-                expanded = expanded1,
-                onDismissRequest = { expanded1 = false }
-            ) {
-                units.forEach() { item ->
-                    DropdownMenuItem(
-                        text = { Text(text = item) },
-                        onClick = {
-                            creditData = creditData.copy(selectedUnit = item)
-                            unitLabel = item
-                            expanded1 = false
-                        }
-                    )
-                }
-            }
         }
-
-        //поле для выбора способа погашения
-        ExposedDropdownMenuBox(
-            expanded = expanded2,
-            onExpandedChange = {
-                expanded2 = !expanded2
-            }
-        ) {
-            TextField(
-                value = creditData.repaymentMethod,
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
-                modifier = Modifier.menuAnchor(),
-                label = { Text("Способ погашения") },
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded2,
-                onDismissRequest = { expanded2 = false }
-            ) {
-                repaymentMethods.forEach() { item ->
-                    DropdownMenuItem(
-                        text = { Text(text = item) },
-                        onClick = {
-                            creditData = creditData.copy(repaymentMethod = item)
-                            repaymentMethodsLabel = item
-                            expanded2 = false
-                        }
-                    )
-                }
-            }
-        }
-
+    ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Кнопка "Очистить"
-            Button(onClick = {
-                creditData = CreditData()
-            }) {
-                Text("Очистить")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Поле для ввода суммы кредита
+                    OutlinedTextField(
+                        value = creditData.loanAmount,
+                        onValueChange = { creditData = creditData.copy(loanAmount = it) },
+                        label = { Text("Сумма кредита") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
+                    )
+
+                    // Поле для ввода процентной ставки
+                    OutlinedTextField(
+                        value = creditData.interestRate,
+                        onValueChange = { creditData = creditData.copy(interestRate = it) },
+                        label = { Text("Процентная ставка (%)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) }
+                    )
+
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        // Поле для ввода срока кредита
+                        OutlinedTextField(
+                            value = creditData.loanTerm,
+                            onValueChange = { creditData = creditData.copy(loanTerm = it) },
+                            label = { Text("Срок") },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                            leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) }
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        //поле для выбора единиц измерения срока
+                        ExposedDropdownMenuBox(
+                            expanded = expanded1,
+                            onExpandedChange = { expanded1 = !expanded1 },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            OutlinedTextField(
+                                value = creditData.selectedUnit,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
+                                modifier = Modifier.menuAnchor(),
+                                label = { Text("Период") },
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = expanded1,
+                                onDismissRequest = { expanded1 = false }
+                            ) {
+                                units.forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(text = item) },
+                                        onClick = {
+                                            creditData = creditData.copy(selectedUnit = item)
+                                            expanded1 = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    //поле для выбора способа погашения
+                    ExposedDropdownMenuBox(
+                        expanded = expanded2,
+                        onExpandedChange = { expanded2 = !expanded2 },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = creditData.repaymentMethod,
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            label = { Text("Способ погашения") },
+                            leadingIcon = { Icon(Icons.Default.List, contentDescription = null) }
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded2,
+                            onDismissRequest = { expanded2 = false }
+                        ) {
+                            repaymentMethods.forEach { item ->
+                                DropdownMenuItem(
+                                    text = { Text(text = item) },
+                                    onClick = {
+                                        creditData = creditData.copy(repaymentMethod = item)
+                                        expanded2 = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            // Кнопка "Расчет"
-            Button(onClick = {
-                if (validateFields(creditData)) {
-                    navController.navigate("resultScreen")
-                    creditViewModel.creditData = creditData
-                } else {
-                    showDialog = true
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Кнопка "Очистить"
+                OutlinedButton(
+                    onClick = { creditData = CreditData() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Clear, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Очистить")
                 }
 
-            }) {
-                Text("Расчет")
+                // Кнопка "Расчет"
+                Button(
+                    onClick = {
+                        if (validateFields(creditData)) {
+                            creditViewModel.creditData = creditData
+                            navController.navigate("resultScreen")
+                        } else {
+                            showDialog = true
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Расчет")
+                }
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
@@ -163,15 +221,9 @@ fun MainWindow(navController: NavController, creditViewModel: CreditDataViewMode
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Ошибка") },
-            text = {
-                Text("Пожалуйста, заполните все поля перед расчетом.")
-            },
+            text = { Text("Пожалуйста, заполните все поля перед расчетом.") },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                    }
-                ) {
+                Button(onClick = { showDialog = false }) {
                     Text("ОК")
                 }
             }

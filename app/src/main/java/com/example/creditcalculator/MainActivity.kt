@@ -33,7 +33,10 @@ class MainActivity : ComponentActivity() {
                             MainWindow(navController, creditViewModel)
                         }
                         composable("resultScreen") {
-                            ResultScreen(creditViewModel)
+                            ResultScreen(
+                                creditViewModel = creditViewModel,
+                                onBackClick = { navController.popBackStack() }
+                            )
                         }
                     }
                 }
