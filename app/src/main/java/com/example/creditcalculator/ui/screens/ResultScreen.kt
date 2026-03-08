@@ -5,6 +5,7 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,7 +47,7 @@ import com.example.creditcalculator.service.calc
 import java.text.NumberFormat
 import kotlin.math.roundToLong
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) {
     val context = LocalContext.current
@@ -83,60 +84,65 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            // Summary Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        SummaryItem(label = "Сумма:", value = formatValue(creditData.loanAmount))
-                        SummaryItem(label = "Ставка:", value = "${creditData.interestRate}%")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        SummaryItem(label = "Срок:", value = "${creditData.loanTerm} ${creditData.selectedUnit}")
-                        SummaryItem(label = "Тип:", value = if(creditData.repaymentMethod.startsWith("Аннуи")) "Анн." else "Дифф.")
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "График платежей",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // Table Header
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.small,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 4.dp)
-                ) {
-                    TableHeaderCell(text = "№", weight = 0.15f)
-                    TableHeaderCell(text = "Остаток", weight = 0.25f)
-                    TableHeaderCell(text = "Платеж", weight = 0.25f)
-                    TableHeaderCell(text = "%", weight = 0.15f)
-                    TableHeaderCell(text = "Долг", weight = 0.2f)
-                }
-            }
-
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Summary Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                SummaryItem(label = "Сумма:", value = formatValue(creditData.loanAmount))
+                                SummaryItem(label = "Ставка:", value = "${creditData.interestRate}%")
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                SummaryItem(label = "Срок:", value = "${creditData.loanTerm} ${creditData.selectedUnit}")
+                                SummaryItem(label = "Тип:", value = if(creditData.repaymentMethod.startsWith("Аннуи")) "Анн." else "Дифф.")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "График платежей",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                stickyHeader {
+                    // Table Header
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.small,
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 4.dp)
+                        ) {
+                            TableHeaderCell(text = "№", weight = 0.15f)
+                            TableHeaderCell(text = "Остаток", weight = 0.25f)
+                            TableHeaderCell(text = "Платеж", weight = 0.25f)
+                            TableHeaderCell(text = "%", weight = 0.15f)
+                            TableHeaderCell(text = "Долг", weight = 0.2f)
+                        }
+                    }
+                }
+
                 itemsIndexed(tableData) { index, item ->
                     val bgColor = if (index % 2 == 0) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                     Row(
@@ -175,6 +181,7 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                         TableCell(text = formatValue(item.dolg), weight = 0.2f, fontWeight = FontWeight.Bold)
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
