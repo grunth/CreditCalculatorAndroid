@@ -41,12 +41,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.creditcalculator.model.CreditData
 import com.example.creditcalculator.model.CreditDataViewModel
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,11 +92,16 @@ fun MainWindow(navController: NavController, creditViewModel: CreditDataViewMode
                     // Поле для ввода суммы кредита
                     OutlinedTextField(
                         value = creditData.loanAmount,
-                        onValueChange = { creditData = creditData.copy(loanAmount = it) },
+                        onValueChange = { 
+                            if (it.all { char -> char.isDigit() }) {
+                                creditData = creditData.copy(loanAmount = it)
+                            }
+                        },
                         label = { Text("Сумма кредита") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                        leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
+                        leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
+                        visualTransformation = ThousandsSeparatorTransformation()
                     )
 
                     // Поле для ввода процентной ставки
@@ -237,4 +249,42 @@ private fun validateFields(creditData: CreditData): Boolean {
             creditData.loanTerm.isNotEmpty() &&
             creditData.selectedUnit.isNotEmpty() &&
             creditData.repaymentMethod.isNotEmpty()
+}
+
+class ThousandsSeparatorTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) return TransformedText(text, OffsetMapping.Identity)
+
+        val symbols = DecimalFormatSymbols(Locale.US).apply {
+            groupingSeparator = ' '
+        }
+        val formatter = DecimalFormat("#,###", symbols)
+        val transformedText = try {
+            formatter.format(originalText.toLong())
+        } catch (e: Exception) {
+            originalText
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                val originalSub = originalText.substring(0, offset)
+                val transformedSub = try {
+                    formatter.format(originalSub.toLong())
+                } catch (e: Exception) {
+                    originalSub
+                }
+                return transformedSub.length
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 0) return 0
+                val transformedSub = transformedText.substring(0, offset.coerceAtMost(transformedText.length))
+                return transformedSub.replace(" ", "").length
+            }
+        }
+
+        return TransformedText(AnnotatedString(transformedText), offsetMapping)
+    }
 }
