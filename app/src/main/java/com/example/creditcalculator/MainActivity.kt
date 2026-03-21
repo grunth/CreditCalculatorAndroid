@@ -8,13 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.ui.screens.MainWindow
+import com.example.creditcalculator.ui.screens.OLXBrowserScreen
 import com.example.creditcalculator.ui.screens.ResultScreen
 import com.example.creditcalculator.ui.theme.CreditCalculatorTheme
+import java.net.URLDecoder
 
 class MainActivity : ComponentActivity() {
 
@@ -37,6 +41,14 @@ class MainActivity : ComponentActivity() {
                                 creditViewModel = creditViewModel,
                                 onBackClick = { navController.popBackStack() }
                             )
+                        }
+                        composable(
+                            route = "olxScreen/{url}",
+                            arguments = listOf(navArgument("url") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+                            val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
+                            OLXBrowserScreen(navController, creditViewModel, decodedUrl)
                         }
                     }
                 }
