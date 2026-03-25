@@ -36,10 +36,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.creditcalculator.R
 import com.example.creditcalculator.model.CreditData
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.model.CreditRepaymentData
@@ -54,8 +56,8 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
     val creditData = creditViewModel.creditData
     val data = calc(creditViewModel)
     
-    val tableData = data.filter { it.month != "ИТОГО" }
-    val footerRow = data.find { it.month == "ИТОГО" }
+    val tableData = data.filter { it.month != "ИТОГО" && it.month != "TOTAL" }
+    val footerRow = data.find { it.month == "ИТОГО" || it.month == "TOTAL" }
 
     val integerFormatter = NumberFormat.getIntegerInstance()
 
@@ -63,18 +65,49 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
         return value.toDoubleOrNull()?.let { integerFormatter.format(it.roundToLong()) } ?: value
     }
 
+    // Вспомогательная функция для перевода периода
+    val displayUnit = when(creditData.selectedUnit) {
+        "Год", "Year" -> stringResource(R.string.year)
+        "Месяц", "Month" -> stringResource(R.string.month)
+        else -> creditData.selectedUnit
+    }
+
+    // Вспомогательная функция для перевода типа платежа
+    val displayType = if (creditData.repaymentMethod.startsWith("Аннуи") || creditData.repaymentMethod.startsWith("Annu")) {
+        stringResource(R.string.annuity_short)
+    } else {
+        stringResource(R.string.diff_short)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Результаты расчета", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.results_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cancel))
                     }
                 },
                 actions = {
-                    IconButton(onClick = { printResults(context, creditData, data) }) {
-                        Icon(Icons.Default.Print, contentDescription = "Печать")
+                    val printTitle = stringResource(R.string.results_title)
+                    val amountLbl = stringResource(R.string.summary_amount)
+                    val rateLbl = stringResource(R.string.summary_rate)
+                    val termLbl = stringResource(R.string.summary_term)
+                    val typeLbl = stringResource(R.string.summary_type)
+                    val tableNo = stringResource(R.string.table_no)
+                    val tableBal = stringResource(R.string.table_balance)
+                    val tablePay = stringResource(R.string.table_payment)
+                    val tablePerc = stringResource(R.string.table_percent)
+                    val tableDebt = stringResource(R.string.table_debt)
+
+                    IconButton(onClick = { 
+                        printResults(context, creditData, data, 
+                            printTitle, amountLbl, rateLbl, termLbl, typeLbl,
+                            tableNo, tableBal, tablePay, tablePerc, tableDebt,
+                            displayUnit, displayType
+                        ) 
+                    }) {
+                        Icon(Icons.Default.Print, contentDescription = stringResource(R.string.print))
                     }
                 }
             )
@@ -92,7 +125,6 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
             ) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                    // Summary Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -101,13 +133,13 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                SummaryItem(label = "Сумма:", value = formatValue(creditData.loanAmount))
-                                SummaryItem(label = "Ставка:", value = "${creditData.interestRate}%")
+                                SummaryItem(label = stringResource(R.string.summary_amount), value = formatValue(creditData.loanAmount))
+                                SummaryItem(label = stringResource(R.string.summary_rate), value = "${creditData.interestRate}%")
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                SummaryItem(label = "Срок:", value = "${creditData.loanTerm} ${creditData.selectedUnit}")
-                                SummaryItem(label = "Тип:", value = if(creditData.repaymentMethod.startsWith("Аннуи")) "Анн." else "Дифф.")
+                                SummaryItem(label = stringResource(R.string.summary_term), value = "${creditData.loanTerm} $displayUnit")
+                                SummaryItem(label = stringResource(R.string.summary_type), value = displayType)
                             }
                         }
                     }
@@ -115,7 +147,7 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "График платежей",
+                        text = stringResource(R.string.payment_schedule),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -123,7 +155,6 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                 }
 
                 stickyHeader {
-                    // Table Header
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.small,
@@ -134,11 +165,11 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp, horizontal = 4.dp)
                         ) {
-                            TableHeaderCell(text = "№", weight = 0.15f)
-                            TableHeaderCell(text = "Остаток", weight = 0.25f)
-                            TableHeaderCell(text = "Платеж", weight = 0.25f)
-                            TableHeaderCell(text = "%", weight = 0.15f)
-                            TableHeaderCell(text = "Долг", weight = 0.2f)
+                            TableHeaderCell(text = stringResource(R.string.table_no), weight = 0.15f)
+                            TableHeaderCell(text = stringResource(R.string.table_balance), weight = 0.25f)
+                            TableHeaderCell(text = stringResource(R.string.table_payment), weight = 0.25f)
+                            TableHeaderCell(text = stringResource(R.string.table_percent), weight = 0.15f)
+                            TableHeaderCell(text = stringResource(R.string.table_debt), weight = 0.2f)
                         }
                     }
                 }
@@ -161,7 +192,6 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                 }
             }
             
-            // Sticky Footer (Total)
             footerRow?.let { item ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Card(
@@ -174,7 +204,7 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                             .fillMaxWidth()
                             .padding(vertical = 12.dp, horizontal = 4.dp)
                     ) {
-                        TableCell(text = item.month, weight = 0.15f, fontWeight = FontWeight.Bold)
+                        TableCell(text = stringResource(R.string.total), weight = 0.15f, fontWeight = FontWeight.Bold)
                         TableCell(text = formatValue(item.d), weight = 0.25f, fontWeight = FontWeight.Bold)
                         TableCell(text = formatValue(item.y), weight = 0.25f, fontWeight = FontWeight.Bold)
                         TableCell(text = formatValue(item.procents), weight = 0.15f, fontWeight = FontWeight.Bold)
@@ -218,7 +248,23 @@ fun RowScope.TableCell(text: String, weight: Float, fontWeight: FontWeight = Fon
     )
 }
 
-fun printResults(context: Context, creditData: CreditData, results: List<CreditRepaymentData>) {
+fun printResults(
+    context: Context, 
+    creditData: CreditData, 
+    results: List<CreditRepaymentData>,
+    title: String,
+    amountLbl: String,
+    rateLbl: String,
+    termLbl: String,
+    typeLbl: String,
+    tNo: String,
+    tBal: String,
+    tPay: String,
+    tPerc: String,
+    tDebt: String,
+    unit: String,
+    type: String
+) {
     val webView = WebView(context)
     val integerFormatter = NumberFormat.getIntegerInstance()
     
@@ -234,23 +280,23 @@ fun printResults(context: Context, creditData: CreditData, results: List<CreditR
     htmlContent.append(".summary { margin-bottom: 20px; }")
     htmlContent.append("</style></head><body>")
     
-    htmlContent.append("<h1>Результаты расчета кредита</h1>")
+    htmlContent.append("<h1>$title</h1>")
     htmlContent.append("<div class='summary'>")
-    htmlContent.append("<p><b>Сумма кредита:</b> ${formatVal(creditData.loanAmount)}</p>")
-    htmlContent.append("<p><b>Процентная ставка:</b> ${creditData.interestRate}%</p>")
-    htmlContent.append("<p><b>Срок:</b> ${creditData.loanTerm} ${creditData.selectedUnit}</p>")
-    htmlContent.append("<p><b>Тип платежей:</b> ${creditData.repaymentMethod}</p>")
+    htmlContent.append("<p><b>$amountLbl</b> ${formatVal(creditData.loanAmount)}</p>")
+    htmlContent.append("<p><b>$rateLbl</b> ${creditData.interestRate}%</p>")
+    htmlContent.append("<p><b>$termLbl</b> ${creditData.loanTerm} $unit</p>")
+    htmlContent.append("<p><b>$typeLbl</b> $type</p>")
     htmlContent.append("</div>")
 
     htmlContent.append("<table><thead><tr>")
-    htmlContent.append("<th>№</th><th>Остаток</th><th>Платеж</th><th>Проценты</th><th>Долг</th>")
+    htmlContent.append("<th>$tNo</th><th>$tBal</th><th>$tPay</th><th>$tPerc</th><th>$tDebt</th>")
     htmlContent.append("</tr></thead><tbody>")
 
     results.forEach { item ->
-        val isTotal = item.month == "ИТОГО"
+        val isTotal = item.month == "ИТОГО" || item.month == "TOTAL"
         val style = if (isTotal) "style='font-weight: bold; background-color: #e0e0e0;'" else ""
         htmlContent.append("<tr $style>")
-        htmlContent.append("<td>${item.month}</td>")
+        htmlContent.append("<td>${if(isTotal) "" else item.month}</td>")
         htmlContent.append("<td>${formatVal(item.d)}</td>")
         htmlContent.append("<td>${formatVal(item.y)}</td>")
         htmlContent.append("<td>${formatVal(item.procents)}</td>")
@@ -265,8 +311,7 @@ fun printResults(context: Context, creditData: CreditData, results: List<CreditR
         override fun onPageFinished(view: WebView, url: String) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
             val printAdapter = webView.createPrintDocumentAdapter("CreditReport")
-            val jobName = "Credit Calculation Report"
-            printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
+            printManager.print("Credit Calculation Report", printAdapter, PrintAttributes.Builder().build())
         }
     }
 
