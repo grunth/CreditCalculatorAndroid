@@ -1,11 +1,17 @@
 package com.example.creditcalculator.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,12 +72,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -91,6 +99,7 @@ import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.model.CustomSite
 import com.example.creditcalculator.service.calculateMaxLoan
 import com.example.creditcalculator.service.calculateRentVsBuy
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -102,6 +111,18 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     val context = LocalContext.current
     val units = listOf(stringResource(R.string.year), stringResource(R.string.month))
     val inputTextStyle = TextStyle(fontSize = 16.sp)
+    
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    
+    // Анимация для логотипа
+    val logoInteractionSource = remember { MutableInteractionSource() }
+    val isPressed by logoInteractionSource.collectIsPressedAsState()
+    val logoScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "logoScale"
+    )
     
     var expanded1 by remember { mutableStateOf(false) }
     
@@ -127,7 +148,19 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         topBar = {
             TopAppBar(
                 title = { 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .graphicsLayer(scaleX = logoScale, scaleY = logoScale)
+                            .clickable(
+                                interactionSource = logoInteractionSource,
+                                indication = null
+                            ) {
+                                scope.launch {
+                                    scrollState.animateScrollTo(0)
+                                }
+                            }
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logo),
                             contentDescription = null,
@@ -214,7 +247,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
