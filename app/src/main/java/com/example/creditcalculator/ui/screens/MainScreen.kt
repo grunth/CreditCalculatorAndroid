@@ -70,8 +70,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -115,7 +117,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     var newSiteName by remember { mutableStateOf("") }
     var newSiteUrl by remember { mutableStateOf("") }
 
-    // Вспомогательная функция для отображения текущего периода с учетом языка
     val displayUnit = when(viewModel.creditData.selectedUnit) {
         "Год", "Year" -> stringResource(R.string.year)
         "Месяц", "Month" -> stringResource(R.string.month)
@@ -126,7 +127,26 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         topBar = {
             TopAppBar(
                 title = { 
-                    Text(stringResource(R.string.app_name), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp) 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Mortgage Lab",
+                            style = TextStyle(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
+                                ),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.sp
+                            )
+                        )
+                    }
                 },
                 actions = {
                     IconButton(onClick = { showSiteMenu = true }) {
@@ -200,7 +220,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Сохраненные объекты
             if (viewModel.savedProperties.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -233,6 +252,14 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                     Text(prop.title, maxLines = 1, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                                     Text(prop.price, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
                                 }
+                                
+                                IconButton(onClick = {
+                                    val encodedUrl = URLEncoder.encode(prop.url, "UTF-8")
+                                    navController.navigate("olxScreen/$encodedUrl")
+                                }) {
+                                    Icon(Icons.Default.TravelExplore, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                                }
+
                                 IconButton(onClick = { viewModel.removeSavedProperty(prop) }) {
                                     Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
                                 }
@@ -242,7 +269,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                 }
             }
 
-            // Главная форма
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -354,7 +380,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                         }
                     }
 
-                    // Чипы переключатели
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = showRentCalc,
@@ -432,7 +457,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                 }
             }
 
-            // Аналитика
             if (showRentCalc && viewModel.creditData.monthlyRent.isNotEmpty() && viewModel.creditData.loanAmount.isNotEmpty()) {
                 val rResult = calculateRentVsBuy(viewModel)
                 if (rResult != null) {
@@ -462,7 +486,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                 }
             }
 
-            // Кнопки действий
             Row(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
                     onClick = { viewModel.creditData = CreditData() },
@@ -487,7 +510,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         }
     }
 
-    // Диалог добавления сайта
     if (showAddSiteDialog) {
         AlertDialog(
             onDismissRequest = { showAddSiteDialog = false },
@@ -529,7 +551,6 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         )
     }
 
-    // Справка
     if (showInfoDialog != null) {
         AlertDialog(
             onDismissRequest = { showInfoDialog = null },
