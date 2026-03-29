@@ -1,5 +1,6 @@
 package com.example.creditcalculator.ui.screens
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -612,11 +613,13 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
 }
 
 private fun updateLocale(context: android.content.Context, lang: String) {
+    val prefs = context.getSharedPreferences("credit_calc_prefs", Context.MODE_PRIVATE)
+    prefs.edit().putString("app_lang", lang).apply()
+    
     val locale = Locale(lang)
     Locale.setDefault(locale)
     val config = context.resources.configuration
     config.setLocale(locale)
-    context.createConfigurationContext(config)
     context.resources.updateConfiguration(config, context.resources.displayMetrics)
     
     if (context is android.app.Activity) {

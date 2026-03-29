@@ -178,8 +178,11 @@ fun SiteBrowserScreen(navController: NavController, viewModel: CreditDataViewMod
                     if (existing != null) {
                         suggestedSelector = viewModel.sitePatterns[host]?.lastOrNull()?.selector ?: ""
                         suggestedText = existing.rawPrice
+                        showSaveDialog = true
+                    } else {
+                        // Если объект новый, сразу просим выбрать цену
+                        webView?.evaluateJavascript(getDefinePatternScript(pickTip), null)
                     }
-                    showSaveDialog = true
                 },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.scale(fabScale)
@@ -208,9 +211,8 @@ fun SiteBrowserScreen(navController: NavController, viewModel: CreditDataViewMod
                                     val currentHost = Uri.parse(it).host?.lowercase()?.removePrefix("www.") ?: ""
                                     val patterns = viewModel.sitePatterns[currentHost]
                                     if (!patterns.isNullOrEmpty()) {
+                                        // Пробуем извлечь цену только если паттерн уже известен для этого хоста
                                         evaluateJavascript(getExtractPriceByMultiPatternScript(patterns.map { it.selector }), null)
-                                    } else {
-                                        evaluateJavascript(getAutoFindPriceScript(0), null)
                                     }
                                 }
                             }
@@ -323,7 +325,7 @@ fun SiteBrowserScreen(navController: NavController, viewModel: CreditDataViewMod
                             ) {
                                 Icon(Icons.Default.DeleteOutline, contentDescription = null, Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.reset))
+                                Text(stringResource(R.string.delete))
                             }
                         }
                     }
@@ -413,63 +415,12 @@ private fun getExtractPriceByMultiPatternScript(selectors: List<String>): String
                     return;
                 }
             }
-            ${getAutoFindPriceScript(0)}
         })()
     """.trimIndent()
 }
 
 private fun getAutoFindPriceScript(startIndex: Int): String {
-    return """
-        (function() {
-            var selectors = [
-                '[data-testid="ad-price"]', 
-                'strong[data-cy="ad-price"]', 
-                '[data-testid="ad-price-container"] h3', 
-                '.css-1wnm74r',
-                'h2[data-testid="ad-price"]',
-                '.price-label strong',
-                '.ad-price',
-                '[data-testid="price-value"]',
-                '.offer-price__number',
-                '.aria-price'
-            ];
-            
-            function getSelector(e) {
-                if (e.id) return '#' + e.id;
-                var path = [];
-                while (e && e.nodeType === Node.ELEMENT_NODE) {
-                    var sel = e.nodeName.toLowerCase();
-                    if (e.className && typeof e.className === 'string') {
-                        var classes = e.className.trim().split(/\s+/).filter(c => c && !c.includes(':') && !c.includes('[')).join('.');
-                        if (classes) sel += '.' + classes;
-                    }
-                    path.unshift(sel);
-                    e = e.parentNode;
-                    if (!e || e.nodeName === 'BODY' || e.nodeName === 'HTML') break;
-                }
-                return path.join(' > ');
-            }
-
-            for (var i = $startIndex; i < selectors.length; i++) {
-                var el = document.querySelector(selectors[i]);
-                if (el && el.innerText && el.innerText.length < 40 && /\d/.test(el.innerText)) {
-                    Android.onAutoPatternFound(getSelector(el), el.innerText, i);
-                    return;
-                }
-            }
-            
-            if ($startIndex < 100) { 
-                var all = document.querySelectorAll('h1, h2, h3, strong, span.price, div.price');
-                for (var i = 0; i < all.length; i++) {
-                    var txt = all[i].innerText;
-                    if ((txt.includes('zł') || txt.includes('PLN') || txt.includes('€') || txt.includes('$')) && txt.length < 25 && /\d/.test(txt)) {
-                        Android.onAutoPatternFound(getSelector(all[i]), txt, 100);
-                        return;
-                    }
-                }
-            }
-        })()
-    """.trimIndent()
+    return "" // Disabled as per user request to avoid performance issues
 }
 
 private fun getDefinePatternScript(tipText: String): String {
