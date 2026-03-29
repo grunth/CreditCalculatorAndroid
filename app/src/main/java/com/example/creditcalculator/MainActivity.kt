@@ -15,7 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.ui.screens.MainWindow
-import com.example.creditcalculator.ui.screens.OLXBrowserScreen
+import com.example.creditcalculator.ui.screens.SiteBrowserScreen
 import com.example.creditcalculator.ui.screens.ResultScreen
 import com.example.creditcalculator.ui.theme.CreditCalculatorTheme
 import java.net.URLDecoder
@@ -43,12 +43,12 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(
-                            route = "olxScreen/{url}",
+                            route = "browserScreen/{url}",
                             arguments = listOf(navArgument("url") { type = NavType.StringType })
                         ) { backStackEntry ->
                             val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
                             val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
-                            OLXBrowserScreen(navController, creditViewModel, decodedUrl)
+                            SiteBrowserScreen(navController, creditViewModel, decodedUrl)
                         }
                     }
                 }

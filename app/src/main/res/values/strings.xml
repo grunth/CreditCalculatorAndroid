@@ -49,4 +49,20 @@
     <string name="print">Печать</string>
     <string name="annuity_short">Анн.</string>
     <string name="diff_short">Дифф.</string>
+
+    <string name="browser_title">Браузер</string>
+    <string name="save_property">Сохранение объекта</string>
+    <string name="property_title_label">Название</string>
+    <string name="property_default_title">Объект</string>
+    <string name="price_on_site">Цена (как на сайте)</string>
+    <string name="recognized_price">Распознано: %s</string>
+    <string name="decimal_separator">Разделитель копеек:</string>
+    <string name="sep_none">Нет</string>
+    <string name="show_tech_data">Показать тех. данные</string>
+    <string name="hide_tech_data">Скрыть тех. данные</string>
+    <string name="css_selector">CSS Селектор</string>
+    <string name="property_saved">Объект сохранен!</string>
+    <string name="back">Назад</string>
+    <string name="save">Сохранить</string>
+    <string name="pick_price_tip">Нажмите точно на цену товара</string>
 </resources>
