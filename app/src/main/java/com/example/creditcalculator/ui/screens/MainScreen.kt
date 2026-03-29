@@ -91,6 +91,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -111,6 +112,7 @@ import java.util.Locale
 fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     val context = LocalContext.current
     val units = listOf(stringResource(R.string.year), stringResource(R.string.month))
+    val methods = listOf(stringResource(R.string.annuity_payment), stringResource(R.string.diff_payment))
     val inputTextStyle = TextStyle(fontSize = 16.sp)
     
     val scrollState = rememberScrollState()
@@ -126,6 +128,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     )
     
     var expanded1 by remember { mutableStateOf(false) }
+    var expanded2 by remember { mutableStateOf(false) }
     
     var showSiteMenu by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
@@ -143,6 +146,12 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
         "Год", "Year" -> stringResource(R.string.year)
         "Месяц", "Month" -> stringResource(R.string.month)
         else -> viewModel.creditData.selectedUnit
+    }
+
+    val displayMethod = if (viewModel.creditData.repaymentMethod.startsWith("Аннуи") || viewModel.creditData.repaymentMethod.startsWith("Annu")) {
+        stringResource(R.string.annuity_payment)
+    } else {
+        stringResource(R.string.diff_payment)
     }
 
     Scaffold(
@@ -317,7 +326,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                     OutlinedTextField(
                         value = viewModel.creditData.loanAmount,
                         onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(loanAmount = it) },
-                        label = { Text(stringResource(R.string.property_cost)) },
+                        label = { Text(stringResource(R.string.property_cost), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
@@ -340,7 +349,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                     }
                                 }
                             },
-                            label = { Text(stringResource(R.string.down_payment)) },
+                            label = { Text(stringResource(R.string.down_payment), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
@@ -363,7 +372,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                     OutlinedTextField(
                         value = viewModel.creditData.interestRate,
                         onValueChange = { viewModel.creditData = viewModel.creditData.copy(interestRate = it) },
-                        label = { Text(stringResource(R.string.interest_rate)) },
+                        label = { Text(stringResource(R.string.interest_rate), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
@@ -372,44 +381,72 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                         leadingIcon = { Icon(Icons.Default.AutoGraph, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                     )
 
-                    OutlinedTextField(
-                        value = viewModel.creditData.loanTerm,
-                        onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(loanTerm = it) },
-                        label = { Text(stringResource(R.string.loan_term)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        textStyle = inputTextStyle,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        leadingIcon = { Icon(Icons.Default.Timelapse, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                        trailingIcon = {
-                            IconButton(onClick = { showInfoDialog = "loanTerm" }) {
-                                Icon(Icons.Default.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = viewModel.creditData.loanTerm,
+                            onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(loanTerm = it) },
+                            label = { Text(stringResource(R.string.loan_term), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            singleLine = true,
+                            textStyle = inputTextStyle,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = { Icon(Icons.Default.Timelapse, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            trailingIcon = {
+                                Box(modifier = Modifier.padding(end = 4.dp).size(24.dp).clickable { showInfoDialog = "loanTerm" }, contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(18.dp))
+                                }
+                            }
+                        )
+                        
+                        ExposedDropdownMenuBox(
+                            expanded = expanded1,
+                            onExpandedChange = { expanded1 = !expanded1 },
+                            modifier = Modifier.weight(0.8f)
+                        ) {
+                            OutlinedTextField(
+                                value = displayUnit,
+                                onValueChange = {},
+                                readOnly = true,
+                                shape = RoundedCornerShape(16.dp),
+                                singleLine = true,
+                                textStyle = inputTextStyle,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                label = { Text(stringResource(R.string.period), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                            )
+                            ExposedDropdownMenu(expanded = expanded1, onDismissRequest = { expanded1 = false }) {
+                                units.forEach { item ->
+                                    DropdownMenuItem(text = { Text(text = item) }, onClick = {
+                                        viewModel.creditData = viewModel.creditData.copy(selectedUnit = item)
+                                        expanded1 = false
+                                    })
+                                }
                             }
                         }
-                    )
+                    }
 
                     ExposedDropdownMenuBox(
-                        expanded = expanded1,
-                        onExpandedChange = { expanded1 = !expanded1 },
+                        expanded = expanded2,
+                        onExpandedChange = { expanded2 = !expanded2 },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = displayUnit,
+                            value = displayMethod,
                             onValueChange = {},
                             readOnly = true,
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             textStyle = inputTextStyle,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            label = { Text(stringResource(R.string.period)) }
+                            label = { Text(stringResource(R.string.repayment_method), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                         )
-                        ExposedDropdownMenu(expanded = expanded1, onDismissRequest = { expanded1 = false }) {
-                            units.forEach { item ->
+                        ExposedDropdownMenu(expanded = expanded2, onDismissRequest = { expanded2 = false }) {
+                            methods.forEach { item ->
                                 DropdownMenuItem(text = { Text(text = item) }, onClick = {
-                                    viewModel.creditData = viewModel.creditData.copy(selectedUnit = item)
-                                    expanded1 = false
+                                    viewModel.creditData = viewModel.creditData.copy(repaymentMethod = item)
+                                    expanded2 = false
                                 })
                             }
                         }
@@ -440,7 +477,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                         OutlinedTextField(
                             value = viewModel.creditData.monthlyRent,
                             onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(monthlyRent = it) },
-                            label = { Text(stringResource(R.string.monthly_rent)) },
+                            label = { Text(stringResource(R.string.monthly_rent), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
@@ -460,7 +497,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                             OutlinedTextField(
                                 value = viewModel.creditData.monthlyIncome,
                                 onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(monthlyIncome = it) },
-                                label = { Text(stringResource(R.string.your_income)) },
+                                label = { Text(stringResource(R.string.your_income), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
                                 singleLine = true,

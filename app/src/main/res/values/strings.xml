@@ -49,6 +49,9 @@
     <string name="print">Печать</string>
     <string name="annuity_short">Анн.</string>
     <string name="diff_short">Дифф.</string>
+    <string name="annuity_payment">Аннуитентные платежи</string>
+    <string name="diff_payment">Дифференцированные платежи</string>
+    <string name="repayment_method">Тип платежей</string>
 
     <string name="browser_title">Браузер</string>
     <string name="save_property">Сохранение объекта</string>
