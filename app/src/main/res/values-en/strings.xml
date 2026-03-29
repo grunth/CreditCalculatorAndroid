@@ -49,4 +49,20 @@
     <string name="print">Print</string>
     <string name="annuity_short">Ann.</string>
     <string name="diff_short">Diff.</string>
+
+    <string name="browser_title">Browser</string>
+    <string name="save_property">Save Property</string>
+    <string name="property_title_label">Title</string>
+    <string name="property_default_title">Property</string>
+    <string name="price_on_site">Price (as on site)</string>
+    <string name="recognized_price">Recognized: %s</string>
+    <string name="decimal_separator">Decimal separator:</string>
+    <string name="sep_none">None</string>
+    <string name="show_tech_data">Show technical data</string>
+    <string name="hide_tech_data">Hide technical data</string>
+    <string name="css_selector">CSS Selector</string>
+    <string name="property_saved">Property saved!</string>
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="pick_price_tip">Click exactly on the item price</string>
 </resources>

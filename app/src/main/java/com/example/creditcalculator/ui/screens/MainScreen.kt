@@ -192,7 +192,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                 onClick = {
                                     showSiteMenu = false
                                     val encodedUrl = URLEncoder.encode(site.url, "UTF-8")
-                                    navController.navigate("olxScreen/$encodedUrl")
+                                    navController.navigate("browserScreen/$encodedUrl")
                                 },
                                 trailingIcon = {
                                     if (site.name != "OLX" && site.name != "Otodom") {
@@ -283,12 +283,13 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                 }
                                 Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                                     Text(prop.title, maxLines = 1, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                    Text(prop.price, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                                    val displayPrice = prop.rawPrice.ifEmpty { prop.price }
+                                    Text(displayPrice, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
                                 }
                                 
                                 IconButton(onClick = {
                                     val encodedUrl = URLEncoder.encode(prop.url, "UTF-8")
-                                    navController.navigate("olxScreen/$encodedUrl")
+                                    navController.navigate("browserScreen/$encodedUrl")
                                 }) {
                                     Icon(Icons.Default.TravelExplore, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
                                 }

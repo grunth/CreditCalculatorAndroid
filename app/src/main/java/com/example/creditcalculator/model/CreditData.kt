@@ -24,7 +24,8 @@ data class SavedProperty(
     val title: String,
     val url: String,
     val price: String = "",
-    val siteName: String = ""
+    val siteName: String = "",
+    val rawPrice: String = "" // Сохраняем цену с валютой для отображения
 )
 
 data class CustomSite(
