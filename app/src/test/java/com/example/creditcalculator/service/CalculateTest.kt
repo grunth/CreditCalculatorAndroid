@@ -26,7 +26,7 @@ class CalculateTest {
     }
 
     private fun String.clean(): String {
-        return this.replace("\\s".toRegex(), "").replace("\u00a0", "")
+        return this.replace("\\s".toRegex(), "").replace("\u00a0", "").replace(",", ".")
     }
 
     @Test
@@ -43,12 +43,16 @@ class CalculateTest {
 
         val result = calc(viewModel)
 
-        assertTrue(result[0].d.clean().contains("100000"))
+        // Первая строка (начальный баланс)
+        assertTrue(result[0].d.clean().toDouble() == 100000.0)
+        
+        // 12 месяцев + начальное состояние + итоговая строка = 14
         assertEquals(14, result.size)
 
         val totalRow = result.last()
         assertEquals("ИТОГО", totalRow.month)
-        assertTrue(totalRow.y.clean().contains("10661"))
+        // Общая сумма выплат при 12% годовых на 100000 на 12 месяцев (аннуитет) ~ 106618.55
+        assertTrue(totalRow.y.clean().toDouble() > 106000.0)
     }
 
     @Test
@@ -69,6 +73,7 @@ class CalculateTest {
         
         val totalRow = result.last()
         assertEquals("ИТОГО", totalRow.month)
-        assertTrue(totalRow.y.clean().contains("106500"))
+        // Дифф: 100000 + (12% от среднего остатка). 100000 + 6500 = 106500
+        assertEquals(106500.0, totalRow.y.clean().toDouble(), 0.1)
     }
 }

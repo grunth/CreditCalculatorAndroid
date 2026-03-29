@@ -49,6 +49,9 @@
     <string name="print">Print</string>
     <string name="annuity_short">Ann.</string>
     <string name="diff_short">Diff.</string>
+    <string name="annuity_payment">Annuity payments</string>
+    <string name="diff_payment">Differentiated payments</string>
+    <string name="repayment_method">Repayment type</string>
 
     <string name="browser_title">Browser</string>
     <string name="save_property">Save Property</string>
@@ -65,4 +68,5 @@
     <string name="back">Back</string>
     <string name="save">Save</string>
     <string name="pick_price_tip">Click exactly on the item price</string>
+    <string name="delete">Delete</string>
 </resources>
