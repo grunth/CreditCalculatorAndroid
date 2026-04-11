@@ -3,6 +3,7 @@ package com.example.creditcalculator.service
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.model.CreditRepaymentData
 import com.example.creditcalculator.model.RentVsBuyResult
+import com.example.creditcalculator.model.RentVsBuyYearlyData
 import kotlin.math.pow
 
 fun calc(creditViewModel: CreditDataViewModel): List<CreditRepaymentData> {
@@ -131,8 +132,8 @@ fun calculateRentVsBuy(creditViewModel: CreditDataViewModel): RentVsBuyResult? {
         loanAmount / totalMonths
     }
 
-    val annualInflation = 0.05 // 5% инфляция аренды
-    val annualAppreciation = 0.04 // 4% рост недв
+    val annualInflation = (creditData.rentInflation.toDoubleOrNull() ?: 5.0) / 100.0
+    val annualAppreciation = (creditData.propertyAppreciation.toDoubleOrNull() ?: 4.0) / 100.0
     
     var currentRent = rentInput
     var totalRentPaid = 0.0
@@ -141,31 +142,40 @@ fun calculateRentVsBuy(creditViewModel: CreditDataViewModel): RentVsBuyResult? {
     var currentPropertyValue = totalAmount
     
     var breakEvenMonth = -1
+    val yearlyDetails = mutableListOf<RentVsBuyYearlyData>()
 
-    for (m in 1..360) { // Считаем до 30 лет макс
-        // Расходы на аренду
+    for (m in 1..360) { // Calculate up to 30 years
+        // Rent expenses
         totalRentPaid += currentRent
-        if (m % 12 == 0) currentRent *= (1 + annualInflation)
         
-        // Расходы на ипотеку и изменение капитала
-        val interest = currentBalance * monthlyRate
-        val principal = (mortgagePayment - interest).coerceAtMost(currentBalance)
-        totalMortgagePaid += mortgagePayment
-        currentBalance -= principal
+        // Mortgage expenses and equity change
+        if (m <= totalMonths) {
+            val interest = currentBalance * monthlyRate
+            val principal = (mortgagePayment - interest).coerceAtMost(currentBalance)
+            totalMortgagePaid += mortgagePayment
+            currentBalance -= principal
+        }
         
-        if (m % 12 == 0) currentPropertyValue *= (1 + annualAppreciation)
+        if (m % 12 == 0) {
+            val yearNum = m / 12
+            yearlyDetails.add(RentVsBuyYearlyData(
+                year = yearNum,
+                rentPaid = totalRentPaid,
+                mortgagePaid = totalMortgagePaid,
+                propertyValue = currentPropertyValue,
+                remainingLoan = currentBalance
+            ))
+            currentRent *= (1 + annualInflation)
+            currentPropertyValue *= (1 + annualAppreciation)
+        }
         
-        // Капитал при покупке = Стоимость - Остаток долга - Потрачено на ипотеку
+        // Equity Buy = Value - Remaining Loan - Total Paid (Mortgage + Down Payment)
         val buyEquity = currentPropertyValue - currentBalance - totalMortgagePaid - downPaymentAmount
-        // Капитал при аренде = -Потрачено на аренду
+        // Equity Rent = -Total Rent Paid (assuming down payment was kept/invested at 0% for simple comparison)
         val rentEquity = -totalRentPaid
         
         if (breakEvenMonth == -1 && buyEquity > rentEquity) {
             breakEvenMonth = m
-        }
-        
-        if (m == totalMonths && m <= 360) {
-             // закончили расчет на сроке кредита если он меньше 30 лет
         }
     }
 
@@ -173,16 +183,18 @@ fun calculateRentVsBuy(creditViewModel: CreditDataViewModel): RentVsBuyResult? {
         breakEvenMonth = breakEvenMonth,
         totalRentPaid = totalRentPaid,
         totalMortgagePaid = totalMortgagePaid,
-        propertyValueAtEnd = currentPropertyValue
+        propertyValueAtEnd = currentPropertyValue,
+        yearlyDetails = yearlyDetails
     )
 }
 
-fun calculateMaxLoan(monthlyIncome: String, interestRate: String, termYears: Double): Double {
+fun calculateMaxLoan(monthlyIncome: String, interestRate: String, termYears: Double, maxPercent: String = "35"): Double {
     val income = monthlyIncome.replace(" ", "").toDoubleOrNull() ?: 0.0
     val rate = interestRate.toDoubleOrNull() ?: 0.0
     if (income <= 0 || rate <= 0 || termYears <= 0) return 0.0
     
-    val maxMonthlyPayment = income * 0.35 // 35% от дохода
+    val p = maxPercent.toDoubleOrNull() ?: 35.0
+    val maxMonthlyPayment = income * (p / 100.0)
     val monthlyRate = (rate / 100.0) / 12.0
     val totalMonths = termYears * 12
     

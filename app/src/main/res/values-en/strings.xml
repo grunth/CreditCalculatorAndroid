@@ -69,4 +69,19 @@
     <string name="save">Save</string>
     <string name="pick_price_tip">Click exactly on the item price</string>
     <string name="delete">Delete</string>
+    <string name="comment">Comment</string>
+    <string name="edit_comment">Edit comment</string>
+    <string name="max_income_percent">Max % of income for mortgage</string>
+    <string name="rent_inflation">Rent inflation (% per year)</string>
+    <string name="property_appreciation">Property growth (% per year)</string>
+    <string name="detailed_calc">Detailed calculation</string>
+    <string name="rent_buy_details_title">Detailed comparison (by year)</string>
+    <string name="year_num">Year %d</string>
+    <string name="total_rent">Rent (total):</string>
+    <string name="total_mortgage">Mortgage (total):</string>
+    <string name="property_value_label">Property value:</string>
+    <string name="loan_balance_label">Loan balance:</string>
+    <string name="buy_advantage_from_start">Buying is better than renting from start (month 1)</string>
+    <string name="buy_payback_months">Purchase will pay off in %d months</string>
+    <string name="buy_payback_years_months">Purchase will pay off in %1$d y. and %2$d m.</string>
 </resources>
