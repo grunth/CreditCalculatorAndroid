@@ -69,4 +69,6 @@
     <string name="save">Сохранить</string>
     <string name="pick_price_tip">Нажмите точно на цену товара</string>
     <string name="delete">Удалить</string>
+    <string name="comment">Комментарий</string>
+    <string name="edit_comment">Редактировать комментарий</string>
 </resources>

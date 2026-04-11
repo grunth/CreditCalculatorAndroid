@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.HomeWork
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
@@ -138,6 +139,8 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     var showRentCalc by remember { mutableStateOf(false) }
     var showIncomeCalc by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf<String?>(null) }
+    var showCommentDialog by remember { mutableStateOf<com.example.creditcalculator.model.SavedProperty?>(null) }
+    var editedComment by remember { mutableStateOf("") }
 
     var newSiteName by remember { mutableStateOf("") }
     var newSiteUrl by remember { mutableStateOf("") }
@@ -295,8 +298,18 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                     Text(prop.title, maxLines = 1, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                                     val displayPrice = prop.rawPrice.ifEmpty { prop.price }
                                     Text(displayPrice, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                                    if (prop.comment.isNotEmpty()) {
+                                        Text(prop.comment, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
                                 }
                                 
+                                IconButton(onClick = {
+                                    editedComment = prop.comment
+                                    showCommentDialog = prop
+                                }) {
+                                    Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                                }
+
                                 IconButton(onClick = {
                                     val encodedUrl = URLEncoder.encode(prop.url, "UTF-8")
                                     navController.navigate("browserScreen/$encodedUrl")
@@ -644,6 +657,38 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
             confirmButton = { Button(onClick = { showDialog = false }) { Text(stringResource(R.string.ok)) } },
             title = { Text(stringResource(R.string.attention)) },
             text = { Text(stringResource(R.string.fill_fields)) },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+    if (showCommentDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showCommentDialog = null },
+            title = { Text(stringResource(R.string.comment)) },
+            text = {
+                OutlinedTextField(
+                    value = editedComment,
+                    onValueChange = { editedComment = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.edit_comment)) },
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showCommentDialog?.let { prop ->
+                        viewModel.updatePropertyComment(prop.url, editedComment)
+                    }
+                    showCommentDialog = null
+                }) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCommentDialog = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
             shape = RoundedCornerShape(24.dp)
         )
     }
