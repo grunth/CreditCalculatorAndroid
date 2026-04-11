@@ -68,6 +68,15 @@ class CreditDataViewModel(application: Application) : AndroidViewModel(applicati
             saveData()
         }
     }
+
+    fun updatePropertyComment(url: String, comment: String) {
+        val index = savedProperties.indexOfFirst { it.url == url }
+        if (index != -1) {
+            val updated = savedProperties[index].copy(comment = comment)
+            savedProperties[index] = updated
+            saveData()
+        }
+    }
     
     fun cleanPriceText(text: String, separator: String): String {
         if (text.isEmpty()) return "0"
@@ -117,6 +126,7 @@ class CreditDataViewModel(application: Application) : AndroidViewModel(applicati
             obj.put("price", it.price)
             obj.put("siteName", it.siteName)
             obj.put("rawPrice", it.rawPrice)
+            obj.put("comment", it.comment)
             propsArray.put(obj)
         }
 
@@ -167,7 +177,8 @@ class CreditDataViewModel(application: Application) : AndroidViewModel(applicati
                     obj.getString("url"),
                     obj.getString("price"),
                     obj.optString("siteName", ""),
-                    obj.optString("rawPrice", "")
+                    obj.optString("rawPrice", ""),
+                    obj.optString("comment", "")
                 ))
             }
         }
