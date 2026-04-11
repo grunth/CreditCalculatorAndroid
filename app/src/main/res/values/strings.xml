@@ -71,4 +71,17 @@
     <string name="delete">Удалить</string>
     <string name="comment">Комментарий</string>
     <string name="edit_comment">Редактировать комментарий</string>
+    <string name="max_income_percent">Макс. % от дохода на ипотеку</string>
+    <string name="rent_inflation">Инфляция аренды (% в год)</string>
+    <string name="property_appreciation">Рост цены жилья (% в год)</string>
+    <string name="detailed_calc">Подробный расчет</string>
+    <string name="rent_buy_details_title">Детальное сравнение (по годам)</string>
+    <string name="year_num">Год %d</string>
+    <string name="total_rent">Аренда (всего):</string>
+    <string name="total_mortgage">Ипотека (всего):</string>
+    <string name="property_value_label">Цена жилья:</string>
+    <string name="loan_balance_label">Остаток долга:</string>
+    <string name="buy_advantage_from_start">Покупка выгоднее аренды сразу (с 1-го месяца)</string>
+    <string name="buy_payback_months">Покупка окупится через %d мес.</string>
+    <string name="buy_payback_years_months">Покупка окупится через %1$d г. и %2$d мес.</string>
 </resources>

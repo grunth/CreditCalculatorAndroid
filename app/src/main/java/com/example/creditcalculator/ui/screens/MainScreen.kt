@@ -60,6 +60,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -137,6 +138,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     
     var showRentCalc by remember { mutableStateOf(false) }
+    var showRentDetailsDialog by remember { mutableStateOf(false) }
     var showIncomeCalc by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf<String?>(null) }
     var showCommentDialog by remember { mutableStateOf<com.example.creditcalculator.model.SavedProperty?>(null) }
@@ -487,18 +489,40 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
-                        OutlinedTextField(
-                            value = viewModel.creditData.monthlyRent,
-                            onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(monthlyRent = it) },
-                            label = { Text(stringResource(R.string.monthly_rent), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            singleLine = true,
-                            textStyle = inputTextStyle,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            leadingIcon = { Icon(Icons.Default.Apartment, contentDescription = null) },
-                            visualTransformation = ThousandsSeparatorTransformation()
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = viewModel.creditData.monthlyRent,
+                                onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(monthlyRent = it) },
+                                label = { Text(stringResource(R.string.monthly_rent), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                singleLine = true,
+                                textStyle = inputTextStyle,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                leadingIcon = { Icon(Icons.Default.Apartment, contentDescription = null) },
+                                visualTransformation = ThousandsSeparatorTransformation()
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(
+                                    value = viewModel.creditData.rentInflation,
+                                    onValueChange = { viewModel.creditData = viewModel.creditData.copy(rentInflation = it) },
+                                    label = { Text(stringResource(R.string.rent_inflation), fontSize = 11.sp, maxLines = 1) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                )
+                                OutlinedTextField(
+                                    value = viewModel.creditData.propertyAppreciation,
+                                    onValueChange = { viewModel.creditData = viewModel.creditData.copy(propertyAppreciation = it) },
+                                    label = { Text(stringResource(R.string.property_appreciation), fontSize = 11.sp, maxLines = 1) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                )
+                            }
+                        }
                     }
 
                     AnimatedVisibility(
@@ -506,7 +530,7 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedTextField(
                                 value = viewModel.creditData.monthlyIncome,
                                 onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(monthlyIncome = it) },
@@ -519,13 +543,23 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                                 leadingIcon = { Icon(Icons.Default.Wallet, contentDescription = null) },
                                 visualTransformation = ThousandsSeparatorTransformation()
                             )
+                            OutlinedTextField(
+                                value = viewModel.creditData.maxIncomePercent,
+                                onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.creditData = viewModel.creditData.copy(maxIncomePercent = it) },
+                                label = { Text(stringResource(R.string.max_income_percent)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                suffix = { Text("%") }
+                            )
                             if (viewModel.creditData.monthlyIncome.isNotEmpty()) {
                                 val t = viewModel.creditData.loanTerm.toDoubleOrNull() ?: 20.0
                                 val r = viewModel.creditData.interestRate.toDoubleOrNull() ?: 8.0
                                 val isYear = viewModel.creditData.selectedUnit == "Год" || viewModel.creditData.selectedUnit == "Year"
-                                val maxL = calculateMaxLoan(viewModel.creditData.monthlyIncome, r.toString(), if (isYear) t else t/12.0)
+                                val maxL = calculateMaxLoan(viewModel.creditData.monthlyIncome, r.toString(), if (isYear) t else t/12.0, viewModel.creditData.maxIncomePercent)
                                 Card(
-                                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
@@ -558,14 +592,40 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                if (rResult.breakEvenMonth > 0) 
-                                    stringResource(R.string.buy_payback, rResult.breakEvenMonth / 12)
-                                else stringResource(R.string.rent_better),
+                                when {
+                                    rResult.breakEvenMonth == 1 -> stringResource(R.string.buy_advantage_from_start)
+                                    rResult.breakEvenMonth > 0 -> {
+                                        val years = rResult.breakEvenMonth / 12
+                                        val months = rResult.breakEvenMonth % 12
+                                        if (years > 0) {
+                                            if (months > 0) stringResource(R.string.buy_payback_years_months, years, months)
+                                            else stringResource(R.string.buy_payback, years)
+                                        } else {
+                                            stringResource(R.string.buy_payback_months, months)
+                                        }
+                                    }
+                                    else -> stringResource(R.string.rent_better)
+                                },
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(stringResource(R.string.property_growth, DecimalFormat("#,###").format(rResult.propertyValueAtEnd)), style = MaterialTheme.typography.bodyMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            val fmt = DecimalFormat("#,###")
+                            Text("${stringResource(R.string.total_rent)} ${fmt.format(rResult.totalRentPaid)}", style = MaterialTheme.typography.labelMedium)
+                            Text("${stringResource(R.string.total_mortgage)} ${fmt.format(rResult.totalMortgagePaid)}", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.property_growth, fmt.format(rResult.propertyValueAtEnd)), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                            
+                            TextButton(
+                                onClick = { showRentDetailsDialog = true },
+                                modifier = Modifier.align(Alignment.End)
+                            ) {
+                                Icon(Icons.Default.Insights, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.detailed_calc))
+                            }
                         }
                     }
                 }
@@ -657,6 +717,56 @@ fun MainWindow(navController: NavController, viewModel: CreditDataViewModel) {
             confirmButton = { Button(onClick = { showDialog = false }) { Text(stringResource(R.string.ok)) } },
             title = { Text(stringResource(R.string.attention)) },
             text = { Text(stringResource(R.string.fill_fields)) },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+    if (showRentDetailsDialog) {
+        val rResult = calculateRentVsBuy(viewModel)
+        AlertDialog(
+            onDismissRequest = { showRentDetailsDialog = false },
+            confirmButton = { TextButton(onClick = { showRentDetailsDialog = false }) { Text(stringResource(R.string.ok)) } },
+            title = { Text(stringResource(R.string.rent_buy_details_title)) },
+            text = {
+                if (rResult != null) {
+                    val fmt = DecimalFormat("#,###")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        rResult.yearlyDetails.forEach { detail ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(stringResource(R.string.year_num, detail.year), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp)
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(stringResource(R.string.total_rent), style = MaterialTheme.typography.labelSmall)
+                                        Text(fmt.format(detail.rentPaid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    }
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(stringResource(R.string.total_mortgage), style = MaterialTheme.typography.labelSmall)
+                                        Text(fmt.format(detail.mortgagePaid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    }
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(stringResource(R.string.property_value_label), style = MaterialTheme.typography.labelSmall)
+                                        Text(fmt.format(detail.propertyValue), style = MaterialTheme.typography.labelSmall)
+                                    }
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(stringResource(R.string.loan_balance_label), style = MaterialTheme.typography.labelSmall)
+                                        Text(fmt.format(detail.remainingLoan), style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             shape = RoundedCornerShape(24.dp)
         )
     }

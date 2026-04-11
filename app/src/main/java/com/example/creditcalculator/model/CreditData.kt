@@ -9,7 +9,10 @@ data class CreditData(
     val selectedUnit: String = "Год",
     val repaymentMethod: String = "Аннуитентные платежи",
     val monthlyRent: String = "",
-    val monthlyIncome: String = ""
+    val monthlyIncome: String = "",
+    val maxIncomePercent: String = "35",
+    val rentInflation: String = "5",
+    val propertyAppreciation: String = "4"
 )
 
 data class CreditRepaymentData(
@@ -38,5 +41,14 @@ data class RentVsBuyResult(
     val breakEvenMonth: Int,
     val totalRentPaid: Double,
     val totalMortgagePaid: Double,
-    val propertyValueAtEnd: Double
+    val propertyValueAtEnd: Double,
+    val yearlyDetails: List<RentVsBuyYearlyData> = emptyList()
+)
+
+data class RentVsBuyYearlyData(
+    val year: Int,
+    val rentPaid: Double,
+    val mortgagePaid: Double,
+    val propertyValue: Double,
+    val remainingLoan: Double
 )
