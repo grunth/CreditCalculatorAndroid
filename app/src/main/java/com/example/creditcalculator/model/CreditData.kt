@@ -1,24 +1,54 @@
 package com.example.creditcalculator.model
 
-import androidx.lifecycle.ViewModel
-
-
-class CreditDataViewModel : ViewModel() {
-    var creditData: CreditData = CreditData()
-}
-
 data class CreditData(
-    var loanAmount: String = "",
-    var interestRate: String = "",
-    var loanTerm: String = "",
-    var selectedUnit: String = "Год",
-    var repaymentMethod: String = "Аннуитентные платежи"
+    val loanAmount: String = "",
+    val downPayment: String = "0",
+    val isDownPaymentPercent: Boolean = true,
+    val interestRate: String = "",
+    val loanTerm: String = "",
+    val selectedUnit: String = "Год",
+    val repaymentMethod: String = "Аннуитентные платежи",
+    val monthlyRent: String = "",
+    val monthlyIncome: String = "",
+    val maxIncomePercent: String = "35",
+    val rentInflation: String = "5",
+    val propertyAppreciation: String = "4"
 )
 
 data class CreditRepaymentData(
-    var month: String = "",
-    var d: String = "",
-    var y: String = "",
-    var procents: String = "",
-    var dolg: String = ""
+    val month: String,
+    val d: String,
+    val y: String,
+    val procents: String,
+    val dolg: String
+)
+
+data class SavedProperty(
+    val title: String,
+    val url: String,
+    val price: String = "",
+    val siteName: String = "",
+    val rawPrice: String = "", // Сохраняем цену с валютой для отображения
+    val comment: String = ""
+)
+
+data class CustomSite(
+    val name: String,
+    val url: String
+)
+
+data class RentVsBuyResult(
+    val breakEvenMonth: Int,
+    val totalRentPaid: Double,
+    val totalMortgagePaid: Double,
+    val propertyValueAtEnd: Double,
+    val yearlyDetails: List<RentVsBuyYearlyData> = emptyList()
+)
+
+data class RentVsBuyYearlyData(
+    val year: Int,
+    val rentPaid: Double,
+    val mortgagePaid: Double,
+    val propertyValue: Double,
+    val remainingLoan: Double
 )

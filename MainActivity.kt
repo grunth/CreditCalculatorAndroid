@@ -1,6 +1,5 @@
 package com.example.creditcalculator
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,26 +15,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.ui.screens.MainWindow
-import com.example.creditcalculator.ui.screens.ResultScreen
 import com.example.creditcalculator.ui.screens.SiteBrowserScreen
+import com.example.creditcalculator.ui.screens.ResultScreen
 import com.example.creditcalculator.ui.theme.CreditCalculatorTheme
 import java.net.URLDecoder
-import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
     private val creditViewModel by viewModels<CreditDataViewModel>()
-    
-    override fun attachBaseContext(newBase: Context) {
-        val prefs = newBase.getSharedPreferences("credit_calc_prefs", Context.MODE_PRIVATE)
-        val lang = prefs.getString("app_lang", Locale.getDefault().language) ?: Locale.getDefault().language
-        val locale = Locale(lang)
-        Locale.setDefault(locale)
-        val config = newBase.resources.configuration
-        config.setLocale(locale)
-        super.attachBaseContext(newBase.createConfigurationContext(config))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
