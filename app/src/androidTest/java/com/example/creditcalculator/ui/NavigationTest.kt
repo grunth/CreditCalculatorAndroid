@@ -1,5 +1,6 @@
 package com.example.creditcalculator.ui
 
+import android.app.Application
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -7,6 +8,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import com.example.creditcalculator.model.CreditDataViewModel
 import com.example.creditcalculator.ui.screens.MainWindow
 import com.example.creditcalculator.ui.screens.ResultScreen
@@ -20,7 +22,8 @@ class NavigationTest {
 
     @Test
     fun testNavigationToResultAndBack() {
-        val viewModel = CreditDataViewModel()
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        val viewModel = CreditDataViewModel(application)
 
         composeTestRule.setContent {
             val navController = rememberNavController()
@@ -55,7 +58,8 @@ class NavigationTest {
 
     @Test
     fun testValidationErrorShowDialog() {
-        val viewModel = CreditDataViewModel()
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        val viewModel = CreditDataViewModel(application)
 
         composeTestRule.setContent {
             val navController = rememberNavController()
