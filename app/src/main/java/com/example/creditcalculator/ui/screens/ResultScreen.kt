@@ -1,6 +1,8 @@
 package com.example.creditcalculator.ui.screens
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.webkit.WebView
@@ -101,11 +103,13 @@ fun ResultScreen(creditViewModel: CreditDataViewModel, onBackClick: () -> Unit) 
                     val tableDebt = stringResource(R.string.table_debt)
 
                     IconButton(onClick = { 
-                        printResults(context, creditData, data, 
-                            printTitle, amountLbl, rateLbl, termLbl, typeLbl,
-                            tableNo, tableBal, tablePay, tablePerc, tableDebt,
-                            displayUnit, displayType
-                        ) 
+                        context.findActivity()?.let { activity ->
+                            printResults(activity, creditData, data, 
+                                printTitle, amountLbl, rateLbl, termLbl, typeLbl,
+                                tableNo, tableBal, tablePay, tablePerc, tableDebt,
+                                displayUnit, displayType
+                            )
+                        }
                     }) {
                         Icon(Icons.Default.Print, contentDescription = stringResource(R.string.print))
                     }
@@ -248,8 +252,17 @@ fun RowScope.TableCell(text: String, weight: Float, fontWeight: FontWeight = Fon
     )
 }
 
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
+
 fun printResults(
-    context: Context, 
+    activity: Activity, 
     creditData: CreditData, 
     results: List<CreditRepaymentData>,
     title: String,
@@ -265,7 +278,8 @@ fun printResults(
     unit: String,
     type: String
 ) {
-    val webView = WebView(context)
+    val printManager = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
+    val webView = WebView(activity)
     val integerFormatter = NumberFormat.getIntegerInstance()
     
     fun formatVal(value: String): String {
@@ -309,11 +323,10 @@ fun printResults(
 
     webView.webViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView, url: String) {
-            val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-            val printAdapter = webView.createPrintDocumentAdapter("CreditReport")
+            val printAdapter = view.createPrintDocumentAdapter("CreditReport")
             printManager.print("Credit Calculation Report", printAdapter, PrintAttributes.Builder().build())
         }
     }
 
-    webView.loadDataWithBaseURL(null, htmlContent.toString(), "text/HTML", "UTF-8", null)
+    webView.loadDataWithBaseURL(null, htmlContent.toString(), "text/html", "UTF-8", null)
 }
